@@ -7,10 +7,10 @@ import (
 
 const version = "2020.3.3.7"
 const serviceName = "Linaplast User Import Service"
-const serviceDescription = "Download users from Helios database"
+const serviceDescription = "Download users from Helios database and imports them into Zapsi database"
 const zapsiConfig = "user=zapsi_uzivatel password=zapsi dbname=zapsi2 host=zapsidatabase port=3306 sslmode=disable"
 const heliosConfig = "sqlserver://zapsi:Zapsi@sql14.linaplast.local\\sql2014:1433?database=Helios002"
-const downloadInSeconds = 86400
+const downloadInSeconds = 60
 
 var serviceRunning = false
 var processRunning = false
@@ -19,6 +19,7 @@ type program struct{}
 
 func main() {
 	logInfo("MAIN", serviceName+" ["+version+"] starting...")
+	logInfo("MAIN", serviceDescription)
 	serviceConfig := &service.Config{
 		Name:        serviceName,
 		DisplayName: serviceName,

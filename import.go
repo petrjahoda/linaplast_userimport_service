@@ -12,45 +12,42 @@ import (
 
 func ImportUsersFromHelios() {
 	timer := time.Now()
-	logInfo("import", "Importing data")
+	logInfo("MAIN", "Importing process started")
 	zapsiUsers, downloadedFromZapsi := DownloadUsersFromZapsi()
 	heliosUsers, downloadedFromHelios := DownloadUsersFromHelios()
-	sort.Slice(zapsiUsers, func(i, j int) bool {
-		return zapsiUsers[i].Barcode <= zapsiUsers[j].Barcode
-	})
-	sort.Slice(heliosUsers, func(i, j int) bool {
-		return heliosUsers[i].Cislo <= heliosUsers[j].Cislo
-	})
-
 	if downloadedFromZapsi && downloadedFromHelios {
-		logInfo("import", "Zapsi Users: "+strconv.Itoa(len(zapsiUsers)))
-		logInfo("import", "Helios Users: "+strconv.Itoa(len(heliosUsers)))
+		sort.Slice(zapsiUsers, func(i, j int) bool {
+			return zapsiUsers[i].Login <= zapsiUsers[j].Login
+		})
+		sort.Slice(heliosUsers, func(i, j int) bool {
+			return heliosUsers[i].Cislo <= heliosUsers[j].Cislo
+		})
+		logInfo("MAIN", "Zapsi Users: "+strconv.Itoa(len(zapsiUsers)))
+		logInfo("MAIN", "Helios Users: "+strconv.Itoa(len(heliosUsers)))
 		UpdateUsers(heliosUsers, zapsiUsers)
 	}
-	logInfo("import", "Data imported, time elapsed: "+time.Since(timer).String())
+	logInfo("MAIN", "Importing process complete, time elapsed: "+time.Since(timer).String())
 }
 
 func UpdateUsers(heliosUsers []hvw_Zamestnanci, zapsiUsers []user) {
 	timer := time.Now()
-	logInfo("import", "Updating Users")
+	logInfo("MAIN", "Updating users")
 	for _, heliosUser := range heliosUsers {
 		if serviceRunning {
 			index, userInZapsi := BinarySearchUser(zapsiUsers, heliosUser)
 			if userInZapsi {
-				logInfo("import", heliosUser.Prijmeni+": User exists, just updating...")
 				UpdateUserInZapsi(heliosUser, zapsiUsers[index])
-
 			} else {
 				CreateZapsiUserFrom(heliosUser)
 			}
 		}
 	}
-	logInfo("import", "Users updated, time elapsed: "+time.Since(timer).String())
+	logInfo("MAIN", "Users updated, time elapsed: "+time.Since(timer).String())
 }
 
 func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
 	timer := time.Now()
-	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User exists, updating...")
+	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User exists in Zapsi, updating...")
 	db, err := gorm.Open(mysql.Open(zapsiConfig), &gorm.Config{})
 	if err != nil {
 		logError("MAIN", "Problem opening database: "+err.Error())
@@ -59,9 +56,11 @@ func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
 	sqlDB, err := db.DB()
 	defer sqlDB.Close()
 
-	userTypeIdToInsert := 1
+	var userTypeIdToInsert int
+	updateUserType := false
 	if heliosUser.Serizovac {
 		userTypeIdToInsert = 2
+		updateUserType = true
 	}
 	db.Model(&user{}).Where(user{Login: zapsiUser.Login}).Updates(user{
 		Name:       heliosUser.Prijmeni,
@@ -69,15 +68,15 @@ func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
 		Rfid:       heliosUser.Cislo,
 		Barcode:    heliosUser.Cislo,
 		Pin:        heliosUser.Cislo,
-		UserTypeID: sql.NullInt32{Int32: int32(userTypeIdToInsert), Valid: true},
+		UserTypeID: sql.NullInt32{Int32: int32(userTypeIdToInsert), Valid: updateUserType},
 	})
-	logInfo("import", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User updated, "+
+	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User updated, "+
 		"time elapsed: "+time.Since(timer).String())
 }
 
 func CreateZapsiUserFrom(heliosUser hvw_Zamestnanci) {
 	timer := time.Now()
-	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User does not exist, creating...")
+	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User does not exist in Zapsi, creating...")
 	db, err := gorm.Open(mysql.Open(zapsiConfig), &gorm.Config{})
 	if err != nil {
 		logError("MAIN", "Problem opening database: "+err.Error())
@@ -104,7 +103,7 @@ func CreateZapsiUserFrom(heliosUser hvw_Zamestnanci) {
 		}
 	}
 	db.Save(&user)
-	logInfo("import", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User created, "+
+	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User created, "+
 		"time elapsed: "+time.Since(timer).String())
 	return
 }
@@ -117,7 +116,7 @@ func BinarySearchUser(zapsiUsers []user, heliosUser hvw_Zamestnanci) (int, bool)
 
 func DownloadUsersFromHelios() ([]hvw_Zamestnanci, bool) {
 	timer := time.Now()
-	logInfo("import", "Downloading data from Helios")
+	logInfo("MAIN", "Downloading users from Helios")
 	db, err := gorm.Open(sqlserver.Open(heliosConfig), &gorm.Config{})
 	if err != nil {
 		logError("MAIN", "Problem opening database: "+err.Error())
@@ -125,16 +124,15 @@ func DownloadUsersFromHelios() ([]hvw_Zamestnanci, bool) {
 	}
 	sqlDB, err := db.DB()
 	defer sqlDB.Close()
-	logInfo("import", "Helias database connected")
 	var users []hvw_Zamestnanci
 	db.Table("user").Find(&users)
-	logInfo("import", "Helios users downloaded, time elapsed: "+time.Since(timer).String())
+	logInfo("MAIN", "Helios users downloaded, time elapsed: "+time.Since(timer).String())
 	return users, true
 }
 
 func DownloadUsersFromZapsi() ([]user, bool) {
 	timer := time.Now()
-	logInfo("import", "Downloading data from Zapsi")
+	logInfo("MAIN", "Downloading users from Zapsi")
 	db, err := gorm.Open(mysql.Open(zapsiConfig), &gorm.Config{})
 	if err != nil {
 		logError("MAIN", "Problem opening database: "+err.Error())
@@ -142,9 +140,8 @@ func DownloadUsersFromZapsi() ([]user, bool) {
 	}
 	sqlDB, err := db.DB()
 	defer sqlDB.Close()
-	logInfo("import", "Zapsi database connected")
 	var users []user
 	db.Table("user").Find(&users)
-	logInfo("import", "Zapsi users downloaded, time elapsed: "+time.Since(timer).String())
+	logInfo("MAIN", "Zapsi users downloaded, time elapsed: "+time.Since(timer).String())
 	return users, true
 }
