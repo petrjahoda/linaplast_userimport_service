@@ -2,19 +2,13 @@ package main
 
 import (
 	"github.com/kardianos/service"
-	"sort"
-	"strconv"
 	"time"
-	"gorm.io/driver/mysql"
-	"gorm.io/driver/sqlserver"
-	"gorm.io/gorm"
-
 )
 
-const version = "2020.3.2.29"
+const version = "2020.3.3.7"
 const serviceName = "Linaplast User Import Service"
 const serviceDescription = "Download users from Helios database"
-const zapsiConfig = "user=zapsi_uzivatek password=zapsi dbname=zapsi2 host=zapsidatabase port=3306 sslmode=disable"
+const zapsiConfig = "user=zapsi_uzivatel password=zapsi dbname=zapsi2 host=zapsidatabase port=3306 sslmode=disable"
 const heliosConfig = "user=postgres password=Zps05..... dbname=postgres host=database port=5432 sslmode=disable"
 const downloadInSeconds = 86400
 
@@ -69,60 +63,4 @@ func (p *program) run() {
 		time.Sleep(sleepTime)
 		processRunning = false
 	}
-}
-
-func ImportUsersFromHelios() {
-	timer := time.Now()
-	logInfo("import", "Importing data")
-	zapsiUsers, downloadedFromZapsi := DownloadUsersFromZapsi()
-	heliosUsers, downloadedFromHelios := DownloadUsersFromHelios()
-	sort.Slice(zapsiUsers, func(i, j int) bool {
-		return zapsiUsers[i].Barcode <= zapsiUsers[j].Barcode
-	})
-		sort.Slice(heliosUsers, func(i, j int) bool {
-		return heliosUsers[i].OsC <= heliosUsers[j].OsC
-	})
-
-	if downloadedFromZapsi && downloadedFromHelios {
-		logInfo("import", "Zapsi Users: "+strconv.Itoa(len(zapsiUsers)))
-		logInfo("import", "Helios Users: "+strconv.Itoa(len(heliosUsers)))
-		UpdateUsers(k2Users, zapsiUsers)
-		UpdateUsersFour(k2UsersFour, zapsiUsers)
-		UpdateOrders(k2Orders, zapsiOrders)
-	}
-	logInfo("import", "Data imported, time elapsed: "+time.Since(timer).String())
-}
-
-func DownloadUsersFromHelios() (interface{}, interface{}) {
-	timer := time.Now()
-	logInfo("import", "Downloading data from Helios")
-	db, err := gorm.Open(sqlserver.Open(heliosConfig), &gorm.Config{})
-	if err != nil {
-		logError("MAIN", "Problem opening database: "+err.Error())
-		return []user{}, false
-	}
-	sqlDB, err := db.DB()
-	defer sqlDB.Close()
-	logInfo("import", "Helias database connected")
-	var users []user
-	db.Table("user").Find(&users)
-	logInfo("import", "Helios users downloaded, time elapsed: "+time.Since(timer).String())
-	return users, true
-}
-
-func DownloadUsersFromZapsi() ([]user, bool) {
-	timer := time.Now()
-	logInfo("import", "Downloading data from Zapsi")
-	db, err := gorm.Open(mysql.Open(zapsiConfig), &gorm.Config{})
-	if err != nil {
-		logError("MAIN", "Problem opening database: "+err.Error())
-		return []user{}, false
-	}
-	sqlDB, err := db.DB()
-	defer sqlDB.Close()
-	logInfo("import", "Zapsi database connected")
-	var users []user
-	db.Table("user").Find(&users)
-	logInfo("import", "Zapsi users downloaded, time elapsed: "+time.Since(timer).String())
-	return users, true
 }
