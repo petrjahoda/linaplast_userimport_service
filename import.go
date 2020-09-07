@@ -64,7 +64,6 @@ func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
 		userTypeIdToInsert = 2
 	}
 	db.Model(&user{}).Where(user{Login: zapsiUser.Login}).Updates(user{
-		Login:      heliosUser.Cislo,
 		Name:       heliosUser.Prijmeni,
 		FirstName:  heliosUser.Jmeno,
 		Rfid:       heliosUser.Cislo,
