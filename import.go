@@ -58,7 +58,8 @@ func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
 	}
 	sqlDB, err := db.DB()
 	defer sqlDB.Close()
-	var userTypeIdToInsert int32 = 1
+
+	userTypeIdToInsert := 1
 	if heliosUser.Serizovac {
 		userTypeIdToInsert = 2
 	}
@@ -69,9 +70,10 @@ func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
 		Rfid:       heliosUser.Cislo,
 		Barcode:    heliosUser.Cislo,
 		Pin:        heliosUser.Cislo,
-		UserTypeID: sql.NullInt32{Int32: userTypeIdToInsert, Valid: true},
+		UserTypeID: sql.NullInt32{Int32: int32(userTypeIdToInsert), Valid: true},
 	})
-	logInfo("import", "User updated, time elapsed: "+time.Since(timer).String())
+	logInfo("import", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User updated, "+
+		"time elapsed: "+time.Since(timer).String())
 }
 
 func CreateZapsiUserFrom(heliosUser hvw_Zamestnanci) {
@@ -85,14 +87,12 @@ func CreateZapsiUserFrom(heliosUser hvw_Zamestnanci) {
 	sqlDB, err := db.DB()
 	defer sqlDB.Close()
 	var user user
+	user.Login = heliosUser.Cislo
 	user.FirstName = heliosUser.Jmeno
 	user.Name = heliosUser.Prijmeni
-	user.Rfid = heliosUser.Cislo
-	user.Barcode = heliosUser.Cislo
-	user.Pin = heliosUser.Cislo
-	user.Login = heliosUser.Cislo
-	user.Role = "user"
-	user.Function = "Operator"
+	user.Rfid = heliosUser._EVOLoginZam
+	user.Barcode = heliosUser._EVOLoginZam
+	user.Pin = heliosUser._EVOLoginZam
 	if heliosUser.Serizovac {
 		user.UserTypeID = sql.NullInt32{
 			Int32: 2,
@@ -105,13 +105,14 @@ func CreateZapsiUserFrom(heliosUser hvw_Zamestnanci) {
 		}
 	}
 	db.Save(&user)
-	logInfo("import", "User created, time elapsed: "+time.Since(timer).String())
+	logInfo("import", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User created, "+
+		"time elapsed: "+time.Since(timer).String())
 	return
 }
 
 func BinarySearchUser(zapsiUsers []user, heliosUser hvw_Zamestnanci) (int, bool) {
-	index := sort.Search(len(zapsiUsers), func(i int) bool { return zapsiUsers[i].Barcode >= heliosUser.Cislo })
-	userInZapsi := index < len(zapsiUsers) && zapsiUsers[index].Barcode == heliosUser.Cislo
+	index := sort.Search(len(zapsiUsers), func(i int) bool { return zapsiUsers[i].Login >= heliosUser.Cislo })
+	userInZapsi := index < len(zapsiUsers) && zapsiUsers[index].Login == heliosUser.Cislo
 	return index, userInZapsi
 }
 

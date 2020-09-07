@@ -9,7 +9,7 @@ const version = "2020.3.3.7"
 const serviceName = "Linaplast User Import Service"
 const serviceDescription = "Download users from Helios database"
 const zapsiConfig = "user=zapsi_uzivatel password=zapsi dbname=zapsi2 host=zapsidatabase port=3306 sslmode=disable"
-const heliosConfig = "user=postgres password=Zps05..... dbname=postgres host=database port=5432 sslmode=disable"
+const heliosConfig = "sqlserver://zapsi:Zapsi@sql14.linaplast.local\\sql2014:1433?database=Helios002"
 const downloadInSeconds = 86400
 
 var serviceRunning = false
