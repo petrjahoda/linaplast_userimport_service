@@ -19,6 +19,7 @@ adhere to [Semantic Versioning](http://semver.org/spec/v2.0.0.html) rules.
 ### Fixed
 - database connections
 - user database structure
+- that damn _EVOLoginZam column should be name EVOLoginZam
 
 ## [2020.3.3.7] - 2020-9-7
 

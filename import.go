@@ -46,7 +46,7 @@ func UpdateUsers(heliosUsers []hvw_Zamestnanci, zapsiUsers []user) {
 }
 
 func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
-	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User exists in Zapsi, updating...")
+	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User exists in Zapsi, updating to "+heliosUser.EVOLoginZam)
 	db, err := gorm.Open(mysql.Open(zapsiConfig), &gorm.Config{})
 	if err != nil {
 		logError("MAIN", "Problem opening database: "+err.Error())
@@ -64,9 +64,9 @@ func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
 	db.Model(&user{}).Where(user{Login: zapsiUser.Login}).Updates(user{
 		Name:       heliosUser.Prijmeni,
 		FirstName:  heliosUser.Jmeno,
-		Rfid:       heliosUser.Cislo,
-		Barcode:    heliosUser.Cislo,
-		Pin:        heliosUser.Cislo,
+		Rfid:       heliosUser.EVOLoginZam,
+		Barcode:    heliosUser.EVOLoginZam,
+		Pin:        heliosUser.EVOLoginZam,
 		UserTypeID: sql.NullInt32{Int32: int32(userTypeIdToInsert), Valid: updateUserType},
 	})
 }
@@ -84,9 +84,9 @@ func CreateZapsiUserFrom(heliosUser hvw_Zamestnanci) {
 	user.Login = heliosUser.Cislo
 	user.FirstName = heliosUser.Jmeno
 	user.Name = heliosUser.Prijmeni
-	user.Rfid = heliosUser._EVOLoginZam
-	user.Barcode = heliosUser._EVOLoginZam
-	user.Pin = heliosUser._EVOLoginZam
+	user.Rfid = heliosUser.EVOLoginZam
+	user.Barcode = heliosUser.EVOLoginZam
+	user.Pin = heliosUser.EVOLoginZam
 	if heliosUser.Serizovac {
 		user.UserTypeID = sql.NullInt32{
 			Int32: 2,

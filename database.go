@@ -23,11 +23,11 @@ func (user) TableName() string {
 }
 
 type hvw_Zamestnanci struct {
-	Cislo        string `gorm:"primary_key;column:Cislo"`
-	Prijmeni     string `gorm:"column:Prijmeni"`
-	Jmeno        string `gorm:"column:Jmeno"`
-	_EVOLoginZam string `gorm:"column:_EVOLoginZam"`
-	Serizovac    bool   `gorm:"column:Serizovac"`
+	Cislo       string `gorm:"primary_key;column:Cislo"`
+	Prijmeni    string `gorm:"column:Prijmeni"`
+	Jmeno       string `gorm:"column:Jmeno"`
+	EVOLoginZam string `gorm:"column:_EVOLoginZam"`
+	Serizovac   bool   `gorm:"column:Serizovac"`
 }
 
 func (hvw_Zamestnanci) TableName() string {
