@@ -16,12 +16,8 @@ func ImportUsersFromHelios() {
 	zapsiUsers, downloadedFromZapsi := DownloadUsersFromZapsi()
 	heliosUsers, downloadedFromHelios := DownloadUsersFromHelios()
 	if downloadedFromZapsi && downloadedFromHelios {
-		sort.Slice(zapsiUsers, func(i, j int) bool {
-			return zapsiUsers[i].Login <= zapsiUsers[j].Login
-		})
-		sort.Slice(heliosUsers, func(i, j int) bool {
-			return heliosUsers[i].Cislo <= heliosUsers[j].Cislo
-		})
+		sort.Slice(zapsiUsers, func(i, j int) bool { return zapsiUsers[i].Login <= zapsiUsers[j].Login })
+		sort.Slice(heliosUsers, func(i, j int) bool { return heliosUsers[i].Cislo <= heliosUsers[j].Cislo })
 		logInfo("MAIN", "Zapsi Users: "+strconv.Itoa(len(zapsiUsers)))
 		logInfo("MAIN", "Helios Users: "+strconv.Itoa(len(heliosUsers)))
 		UpdateUsers(heliosUsers, zapsiUsers)
