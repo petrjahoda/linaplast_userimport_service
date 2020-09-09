@@ -46,7 +46,6 @@ func UpdateUsers(heliosUsers []hvw_Zamestnanci, zapsiUsers []user) {
 }
 
 func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
-	timer := time.Now()
 	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User exists in Zapsi, updating...")
 	db, err := gorm.Open(mysql.Open(zapsiConfig), &gorm.Config{})
 	if err != nil {
@@ -70,12 +69,9 @@ func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
 		Pin:        heliosUser.Cislo,
 		UserTypeID: sql.NullInt32{Int32: int32(userTypeIdToInsert), Valid: updateUserType},
 	})
-	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User updated, "+
-		"time elapsed: "+time.Since(timer).String())
 }
 
 func CreateZapsiUserFrom(heliosUser hvw_Zamestnanci) {
-	timer := time.Now()
 	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User does not exist in Zapsi, creating...")
 	db, err := gorm.Open(mysql.Open(zapsiConfig), &gorm.Config{})
 	if err != nil {
@@ -102,9 +98,11 @@ func CreateZapsiUserFrom(heliosUser hvw_Zamestnanci) {
 			Valid: true,
 		}
 	}
+	user.UserRoleID = sql.NullInt32{
+		Int32: 2,
+		Valid: true,
+	}
 	db.Save(&user)
-	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User created, "+
-		"time elapsed: "+time.Since(timer).String())
 	return
 }
 
@@ -125,7 +123,7 @@ func DownloadUsersFromHelios() ([]hvw_Zamestnanci, bool) {
 	sqlDB, err := db.DB()
 	defer sqlDB.Close()
 	var users []hvw_Zamestnanci
-	db.Table("user").Find(&users)
+	db.Find(&users)
 	logInfo("MAIN", "Helios users downloaded, time elapsed: "+time.Since(timer).String())
 	return users, true
 }
