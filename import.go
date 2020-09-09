@@ -88,20 +88,11 @@ func CreateZapsiUserFrom(heliosUser hvw_Zamestnanci) {
 	user.Barcode = heliosUser.EVOLoginZam
 	user.Pin = heliosUser.EVOLoginZam
 	if heliosUser.Serizovac {
-		user.UserTypeID = sql.NullInt32{
-			Int32: 2,
-			Valid: true,
-		}
+		user.UserTypeID = sql.NullInt32{Int32: 2, Valid: true}
 	} else {
-		user.UserTypeID = sql.NullInt32{
-			Int32: 1,
-			Valid: true,
-		}
+		user.UserTypeID = sql.NullInt32{Int32: 1, Valid: true}
 	}
-	user.UserRoleID = sql.NullInt32{
-		Int32: 2,
-		Valid: true,
-	}
+	user.UserRoleID = sql.NullInt32{Int32: 2, Valid: true}
 	db.Save(&user)
 	return
 }
@@ -139,7 +130,7 @@ func DownloadUsersFromZapsi() ([]user, bool) {
 	sqlDB, err := db.DB()
 	defer sqlDB.Close()
 	var users []user
-	db.Table("user").Find(&users)
+	db.Find(&users)
 	logInfo("MAIN", "Zapsi users downloaded, time elapsed: "+time.Since(timer).String())
 	return users, true
 }
