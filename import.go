@@ -38,7 +38,7 @@ func UpdateUsers(heliosUsers []hvw_Zamestnanci, zapsiUsers []user) {
 			if userInZapsi {
 				UpdateUserInZapsi(heliosUser, zapsiUsers[index])
 			} else {
-				CreateZapsiUserFrom(heliosUser)
+				CreateUserInZapsi(heliosUser)
 			}
 		}
 	}
@@ -71,7 +71,7 @@ func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
 	})
 }
 
-func CreateZapsiUserFrom(heliosUser hvw_Zamestnanci) {
+func CreateUserInZapsi(heliosUser hvw_Zamestnanci) {
 	logInfo("MAIN", heliosUser.Jmeno+" "+heliosUser.Prijmeni+": User does not exist in Zapsi, creating...")
 	db, err := gorm.Open(mysql.Open(zapsiConfig), &gorm.Config{})
 	if err != nil {
