@@ -57,12 +57,16 @@ func UpdateUserInZapsi(heliosUser hvw_Zamestnanci, zapsiUser user) {
 		userTypeIdToInsert = 2
 		updateUserType = true
 	}
-	db.Model(&user{}).Where(user{Login: zapsiUser.Login}).Updates(user{
+	toUpdate := heliosUser.EVOLoginZam
+	if heliosUser.EVOLoginZam == "" {
+		toUpdate = "-"
+	}
+	db.Debug().Model(&user{}).Where(user{Login: zapsiUser.Login}).Updates(user{
 		Name:       heliosUser.Prijmeni,
 		FirstName:  heliosUser.Jmeno,
-		Rfid:       heliosUser.EVOLoginZam,
-		Barcode:    heliosUser.EVOLoginZam,
-		Pin:        heliosUser.EVOLoginZam,
+		Rfid:       toUpdate,
+		Barcode:    toUpdate,
+		Pin:        toUpdate,
 		UserTypeID: sql.NullInt32{Int32: int32(userTypeIdToInsert), Valid: updateUserType},
 	})
 }

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const version = "2020.3.3.9"
+const version = "2021.1.2.1"
 const serviceName = "Linaplast User Import Service"
 const serviceDescription = "Download users from Helios database and imports them into Zapsi database"
 const zapsiConfig = "zapsi_uzivatel:zapsi@tcp(zapsidatabase:3306)/zapsi2?charset=utf8mb4&parseTime=True&loc=Local"
